@@ -1,0 +1,21 @@
+# Render Blueprint（仓库根）：同仓 monorepo，API 在 backend/
+# https://render.com/docs/blueprint-spec
+# 创建服务后：Dashboard 中为 DATABASE_URL、JWT_SECRET 填入或确认（sync: false 会提示输入）
+
+services:
+  - type: web
+    name: tech-blog-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false

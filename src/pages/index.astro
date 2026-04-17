@@ -1,0 +1,40 @@
+---
+export const prerender = true;
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>你好，欢迎来到技术随笔</h1>
+			<p>
+				这是一个基于 <a href="https://astro.build/">Astro</a> 的静态博客（SSG），中文内容为主，已接入
+				<strong>代码高亮</strong>（Shiki）与 <strong>数学公式</strong>（KaTeX）。产品需求见仓库内
+				<code>docs/PRD.md</code>。
+			</p>
+			<p>你可以从这里开始：</p>
+			<ul>
+				<li>阅读 <a href="/blog/">博文列表</a></li>
+				<li>查看示例文章《中文排版与数学公式示例》（含行内/块级公式与代码块）</li>
+				<li>修改<strong>本页首页</strong>的大标题与段落：<code>src/pages/index.astro</code></li>
+				<li>修改<strong>关于我</strong>页面正文：<code>src/pages/about.astro</code></li>
+				<li>修改<strong>站点标题与 SEO 描述</strong>（浏览器标签、页头 Logo 旁标题）：<code>src/consts.ts</code></li>
+				<li>修改<strong>导航与页脚</strong>：<code>src/components/Header.astro</code>、<code>Footer.astro</code></li>
+				<li>发布前将项目根目录 <code>astro.config.mjs</code> 中的 <code>site</code> 改为你的正式域名（影响 RSS 与站点地图链接）</li>
+			</ul>
+			<p>
+				文档：<a href="https://docs.astro.build/">Astro 文档</a>。若遇到问题，也可到
+				<a href="https://astro.build/chat">Discord</a> 社区提问。
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>

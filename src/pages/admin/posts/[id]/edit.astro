@@ -1,0 +1,153 @@
+---
+export const prerender = true;
+import AdminLayout from '../../../../components/admin/AdminLayout.astro';
+import { fetchPostList } from '../../../../lib/api';
+
+/** 静态托管：仅为「当前已上线」文章生成编辑页（与公开列表一致）；草稿仅在本机 dev 可编 */
+export async function getStaticPaths() {
+	try {
+		const { data } = await fetchPostList(1, 500);
+		return data.map((p) => ({ params: { id: p.id } }));
+	} catch {
+		return [];
+	}
+}
+
+const { id } = Astro.params;
+---
+
+<AdminLayout title="编辑文章">
+	<div class="admin-wrap">
+		<div class="admin-bar">
+			<h1 class="admin-title">编辑文章</h1>
+			<div class="admin-actions">
+				<a class="admin-btn secondary" href="/admin">返回列表</a>
+			</div>
+		</div>
+		<div id="msg" class="admin-msg error" style="display:none"></div>
+		<div id="ok" class="admin-msg ok" style="display:none"></div>
+		<form id="form" class="admin-form admin-card" style="display:none">
+			<input type="hidden" id="postId" value={id} />
+			<label for="title">标题</label>
+			<input id="title" name="title" type="text" required maxlength="300" />
+			<label for="slug">Slug</label>
+			<input id="slug" name="slug" type="text" maxlength="200" />
+			<label for="summary">摘要</label>
+			<textarea id="summary" name="summary" rows="3" maxlength="2000"></textarea>
+			<label for="body">正文（Markdown）</label>
+			<textarea id="body" name="body" required></textarea>
+			<p id="meta" style="color:rgb(var(--gray));font-size:0.9rem"></p>
+			<div class="admin-actions">
+				<button type="button" class="admin-btn secondary" id="save">保存修改</button>
+				<button type="button" class="admin-btn" id="publish">发布</button>
+				<button type="button" class="admin-btn danger" id="delete">删除</button>
+			</div>
+		</form>
+		<p id="loading">加载中…</p>
+	</div>
+</AdminLayout>
+
+<script define:vars={{ postId: id }}>
+	import { apiJson, getToken, redirectToLogin } from '../../../../scripts/admin-client.ts';
+
+	const msg = document.getElementById('msg') as HTMLDivElement;
+	const ok = document.getElementById('ok') as HTMLDivElement;
+	const form = document.getElementById('form') as HTMLFormElement;
+	const loading = document.getElementById('loading') as HTMLParagraphElement;
+	const meta = document.getElementById('meta') as HTMLParagraphElement;
+
+	if (!getToken()) {
+		redirectToLogin();
+	}
+
+	if (!postId) {
+		window.location.href = '/admin';
+	}
+
+	type Post = {
+		id: string;
+		title: string;
+		slug: string;
+		summary: string;
+		body: string;
+		status: string;
+		updatedAt: string;
+		publishedAt: string | null;
+		author: { email: string };
+	};
+
+	async function load() {
+		try {
+			const res = await apiJson<{ data: Post }>(`/api/v1/admin/posts/${postId}`);
+			const p = res.data;
+			(document.getElementById('title') as HTMLInputElement).value = p.title;
+			(document.getElementById('slug') as HTMLInputElement).value = p.slug;
+			(document.getElementById('summary') as HTMLTextAreaElement).value = p.summary;
+			(document.getElementById('body') as HTMLTextAreaElement).value = p.body;
+			meta.textContent = `状态：${p.status} · 更新：${new Date(p.updatedAt).toLocaleString('zh-CN')} · 作者：${p.author.email}`;
+			loading.style.display = 'none';
+			form.style.display = 'block';
+		} catch (e) {
+			loading.textContent = e instanceof Error ? e.message : '加载失败';
+		}
+	}
+
+	function showOk(text: string) {
+		ok.textContent = text;
+		ok.style.display = 'block';
+		setTimeout(() => {
+			ok.style.display = 'none';
+		}, 2500);
+	}
+
+	document.getElementById('save')?.addEventListener('click', async () => {
+		msg.style.display = 'none';
+		const title = (document.getElementById('title') as HTMLInputElement).value.trim();
+		const slug = (document.getElementById('slug') as HTMLInputElement).value.trim();
+		const summary = (document.getElementById('summary') as HTMLTextAreaElement).value;
+		const body = (document.getElementById('body') as HTMLTextAreaElement).value;
+		try {
+			await apiJson(`/api/v1/admin/posts/${postId}`, {
+				method: 'PATCH',
+				body: JSON.stringify({ title, slug, summary, body }),
+			});
+			showOk('已保存');
+		} catch (e) {
+			msg.textContent = e instanceof Error ? e.message : '保存失败';
+			msg.style.display = 'block';
+		}
+	});
+
+	document.getElementById('publish')?.addEventListener('click', async () => {
+		msg.style.display = 'none';
+		const title = (document.getElementById('title') as HTMLInputElement).value.trim();
+		const slug = (document.getElementById('slug') as HTMLInputElement).value.trim();
+		const summary = (document.getElementById('summary') as HTMLTextAreaElement).value;
+		const body = (document.getElementById('body') as HTMLTextAreaElement).value;
+		try {
+			await apiJson(`/api/v1/admin/posts/${postId}`, {
+				method: 'PATCH',
+				body: JSON.stringify({ title, slug, summary, body, status: 'published' }),
+			});
+			showOk('已发布');
+			window.location.reload();
+		} catch (e) {
+			msg.textContent = e instanceof Error ? e.message : '发布失败';
+			msg.style.display = 'block';
+		}
+	});
+
+	document.getElementById('delete')?.addEventListener('click', async () => {
+		if (!confirm('确定删除这篇文章？不可恢复。')) return;
+		msg.style.display = 'none';
+		try {
+			await apiJson(`/api/v1/admin/posts/${postId}`, { method: 'DELETE' });
+			window.location.href = '/admin';
+		} catch (e) {
+			msg.textContent = e instanceof Error ? e.message : '删除失败';
+			msg.style.display = 'block';
+		}
+	});
+
+	load();
+</script>

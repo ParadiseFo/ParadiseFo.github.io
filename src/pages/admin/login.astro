@@ -1,0 +1,58 @@
+---
+export const prerender = true;
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="登录 — 管理后台">
+	<div class="admin-wrap">
+		<h1 class="admin-title">管理后台登录</h1>
+		<p>使用<strong>管理员</strong>或<strong>作者</strong>账号登录（读者账号无法管理文章）。</p>
+		<div id="msg" class="admin-msg error" style="display:none"></div>
+		<form id="form" class="admin-form admin-card" style="max-width:24rem">
+			<label for="email">邮箱</label>
+			<input id="email" name="email" type="email" autocomplete="username" required />
+			<label for="password">密码</label>
+			<input id="password" name="password" type="password" autocomplete="current-password" required />
+			<div class="admin-actions">
+				<button type="submit" class="admin-btn">登录</button>
+				<a class="admin-btn secondary" href="/">返回首页</a>
+			</div>
+		</form>
+	</div>
+</AdminLayout>
+
+<script>
+	import { apiJson, setToken, getToken, clearToken } from '../../scripts/admin-client.ts';
+
+	if (getToken()) {
+		window.location.href = '/admin';
+	}
+
+	const form = document.getElementById('form') as HTMLFormElement;
+	const msg = document.getElementById('msg') as HTMLDivElement;
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		msg.style.display = 'none';
+		const fd = new FormData(form);
+		const email = String(fd.get('email') || '');
+		const password = String(fd.get('password') || '');
+		try {
+			clearToken();
+			const res = await apiJson<{ token: string; user: { role: string } }>('/api/v1/auth/login', {
+				method: 'POST',
+				body: JSON.stringify({ email, password }),
+			});
+			if (res.user.role !== 'admin' && res.user.role !== 'author') {
+				msg.textContent = '该账号没有管理权限，请使用管理员账号。';
+				msg.style.display = 'block';
+				return;
+			}
+			setToken(res.token);
+			window.location.href = '/admin';
+		} catch (err) {
+			msg.textContent = err instanceof Error ? err.message : '登录失败';
+			msg.style.display = 'block';
+		}
+	});
+</script>

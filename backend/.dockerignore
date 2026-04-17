@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.env
+.env.keys
+*.db
+*.db-journal
+migration-export
+coverage
+*.md
+!README.md

@@ -1,0 +1,69 @@
+---
+export const prerender = true;
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="新建文章">
+	<div class="admin-wrap">
+		<div class="admin-bar">
+			<h1 class="admin-title">新建文章</h1>
+			<div class="admin-actions">
+				<a class="admin-btn secondary" href="/admin">返回列表</a>
+			</div>
+		</div>
+		<div id="msg" class="admin-msg error" style="display:none"></div>
+		<form id="form" class="admin-form admin-card">
+			<label for="title">标题</label>
+			<input id="title" name="title" type="text" required maxlength="300" />
+			<label for="slug">Slug（可选，留空则从标题生成）</label>
+			<input id="slug" name="slug" type="text" maxlength="200" />
+			<label for="summary">摘要</label>
+			<textarea id="summary" name="summary" rows="3" maxlength="2000"></textarea>
+			<label for="body">正文（Markdown）</label>
+			<textarea id="body" name="body" required></textarea>
+			<div class="admin-actions">
+				<button type="submit" name="action" value="draft" class="admin-btn secondary">保存草稿</button>
+				<button type="submit" name="action" value="publish" class="admin-btn">发布</button>
+			</div>
+		</form>
+	</div>
+</AdminLayout>
+
+<script>
+	import { apiJson, getToken, redirectToLogin } from '../../../scripts/admin-client.ts';
+
+	const form = document.getElementById('form') as HTMLFormElement;
+	const msg = document.getElementById('msg') as HTMLDivElement;
+
+	if (!getToken()) {
+		redirectToLogin();
+	}
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		msg.style.display = 'none';
+		const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+		const action = submitter?.value === 'publish' ? 'publish' : 'draft';
+		const title = (document.getElementById('title') as HTMLInputElement).value.trim();
+		const slugRaw = (document.getElementById('slug') as HTMLInputElement).value.trim();
+		const summary = (document.getElementById('summary') as HTMLTextAreaElement).value;
+		const body = (document.getElementById('body') as HTMLTextAreaElement).value;
+		const payload: Record<string, unknown> = {
+			title,
+			summary,
+			body,
+			status: action === 'publish' ? 'published' : 'draft',
+		};
+		if (slugRaw) payload.slug = slugRaw;
+		try {
+			const res = await apiJson<{ data: { id: string } }>('/api/v1/admin/posts', {
+				method: 'POST',
+				body: JSON.stringify(payload),
+			});
+			window.location.href = `/admin/posts/${res.data.id}/edit`;
+		} catch (err) {
+			msg.textContent = err instanceof Error ? err.message : '创建失败';
+			msg.style.display = 'block';
+		}
+	});
+</script>

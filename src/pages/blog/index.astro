@@ -1,0 +1,146 @@
+---
+export const prerender = true;
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { fetchPostList, type PostListItem } from '../../lib/api';
+import { usePublicApiForPosts } from '../../lib/blog-source';
+
+let posts: PostListItem[] = [];
+let loadError: string | null = null;
+
+if (usePublicApiForPosts()) {
+	try {
+		const res = await fetchPostList(1, 50);
+		posts = res.data;
+	} catch (e) {
+		loadError = e instanceof Error ? e.message : '无法加载文章列表';
+	}
+} else {
+	const local = await getCollection('blog');
+	const sorted = local.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+	posts = sorted.map((e) => ({
+		id: e.id,
+		slug: e.id.replace(/\.mdx?$/i, ''),
+		title: e.data.title,
+		summary: e.data.description,
+		publishedAt: e.data.pubDate.toISOString(),
+		updatedAt: (e.data.updatedDate ?? e.data.pubDate).toISOString(),
+	}));
+}
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`博文 — ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li:first-child {
+				width: 100%;
+				margin-bottom: 1rem;
+				text-align: center;
+			}
+			ul li:first-child .title {
+				font-size: 2.369rem;
+			}
+			.title {
+				margin: 0;
+				color: rgb(var(--black));
+				line-height: 1.2;
+			}
+			.excerpt {
+				margin: 0.5rem 0 0;
+				color: rgb(var(--gray-dark));
+				font-size: 0.95rem;
+				line-height: 1.4;
+			}
+			.date {
+				margin: 0;
+				color: rgb(var(--gray));
+			}
+			ul li a:hover h4,
+			ul li a:hover .date {
+				color: rgb(var(--accent));
+			}
+			.api-error {
+				padding: 1rem;
+				background: #fff3cd;
+				border-radius: 8px;
+				color: #664d03;
+			}
+			@media (max-width: 720px) {
+				ul {
+					gap: 0.5em;
+				}
+				ul li {
+					width: 100%;
+					text-align: center;
+				}
+				ul li:first-child {
+					margin-bottom: 0;
+				}
+				ul li:first-child .title {
+					font-size: 1.563em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section>
+				{
+					loadError && (
+						<p class="api-error">
+							<strong>无法连接文章 API。</strong>
+							{loadError}。请确认后端已启动，且在 `.env` 或 GitHub Actions Secret 中配置有效的
+							<code>PUBLIC_API_BASE</code>（HTTPS，无尾斜杠）。未配置时将使用仓库内
+							<code>src/content/blog</code> 的 Markdown。
+						</p>
+					)
+				}
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={`/blog/${post.slug}/`}>
+									<h4 class="title">{post.title}</h4>
+									{post.summary ? <p class="excerpt">{post.summary}</p> : null}
+									<p class="date">
+										{post.publishedAt ? (
+											<FormattedDate date={new Date(post.publishedAt)} />
+										) : (
+											<FormattedDate date={new Date(post.updatedAt)} />
+										)}
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>

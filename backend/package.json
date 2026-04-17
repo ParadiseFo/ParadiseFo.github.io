@@ -1,0 +1,45 @@
+{
+  "name": "tech-blog-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dotenvx run -- tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:local": "dotenvx run -- node dist/server.js",
+    "db:generate": "dotenvx run -- prisma generate",
+    "db:migrate": "dotenvx run -- prisma migrate dev",
+    "db:push": "dotenvx run -- prisma db push",
+    "db:seed": "dotenvx run -- tsx prisma/seed.ts",
+    "db:export-sqlite-csv": "tsx scripts/sqlite-export-csv.ts",
+    "db:import-mysql-csv": "dotenvx run -- tsx scripts/mysql-import-csv.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/jwt": "^9.0.2",
+    "@fastify/rate-limit": "^10.2.1",
+    "@prisma/client": "^6.6.0",
+    "argon2": "^0.41.1",
+    "fastify": "^5.2.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.61.0",
+    "@types/node": "^22.14.0",
+    "csv-parse": "^6.2.1",
+    "csv-stringify": "^6.7.0",
+    "dotenv": "^17.4.2",
+    "prisma": "^6.6.0",
+    "sql.js": "^1.14.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

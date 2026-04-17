@@ -1,0 +1,106 @@
+---
+export const prerender = true;
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="文章管理">
+	<div class="admin-wrap">
+		<div class="admin-bar">
+			<h1 class="admin-title">文章</h1>
+			<div class="admin-actions">
+				<a class="admin-btn" href="/admin/posts/new">新建文章</a>
+				<button type="button" class="admin-btn secondary" id="logout">退出</button>
+				<a class="admin-btn secondary" href="/blog/">查看博客</a>
+			</div>
+		</div>
+		<div id="msg" class="admin-msg error" style="display:none"></div>
+		<div class="admin-card" style="overflow-x:auto">
+			<table class="admin-table" id="tbl">
+				<thead>
+					<tr>
+						<th>标题</th>
+						<th>Slug</th>
+						<th>状态</th>
+						<th>更新</th>
+					</tr>
+				</thead>
+				<tbody id="tbody">
+					<tr><td colspan="4">加载中…</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</AdminLayout>
+
+<script>
+	import {
+		apiJson,
+		clearToken,
+		getToken,
+		redirectToLogin,
+	} from '../../scripts/admin-client.ts';
+
+	const tbody = document.getElementById('tbody') as HTMLTableSectionElement;
+	const msg = document.getElementById('msg') as HTMLDivElement;
+
+	document.getElementById('logout')?.addEventListener('click', () => {
+		clearToken();
+		window.location.href = '/admin/login';
+	});
+
+	type Row = {
+		id: string;
+		title: string;
+		slug: string;
+		status: string;
+		updatedAt: string;
+	};
+
+	function badgeClass(s: string) {
+		if (s === 'published') return 'badge published';
+		if (s === 'draft') return 'badge draft';
+		return 'badge archived';
+	}
+
+	async function load() {
+		if (!getToken()) {
+			redirectToLogin();
+			return;
+		}
+		try {
+			const res = await apiJson<{ data: Row[] }>('/api/v1/admin/posts?limit=50');
+			if (!res.data.length) {
+				tbody.innerHTML = '<tr><td colspan="4">暂无文章，点击「新建文章」开始。</td></tr>';
+				return;
+			}
+			tbody.innerHTML = res.data
+				.map(
+					(p) => `
+				<tr>
+					<td><a href="/admin/posts/${p.id}/edit">${escapeHtml(p.title)}</a></td>
+					<td><code>${escapeHtml(p.slug)}</code></td>
+					<td><span class="${badgeClass(p.status)}">${escapeHtml(p.status)}</span></td>
+					<td>${escapeHtml(new Date(p.updatedAt).toLocaleString('zh-CN'))}</td>
+				</tr>`,
+				)
+				.join('');
+		} catch (e) {
+			msg.textContent = e instanceof Error ? e.message : '加载失败';
+			msg.style.display = 'block';
+			tbody.innerHTML = '<tr><td colspan="4">加载失败</td></tr>';
+			if (e instanceof Error && e.message.includes('401')) {
+				redirectToLogin();
+			}
+		}
+	}
+
+	function escapeHtml(s: string) {
+		return s
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	load();
+</script>

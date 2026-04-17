@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  reader
+  admin
+  author
+}
+
+enum PostStatus {
+  draft
+  published
+  archived
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  role             Role      @default(reader)
+  createdAt        DateTime  @default(now())
+  emailVerifiedAt  DateTime?
+  posts            Post[]
+  auditLogs        AuditLog[]
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  authorId    String
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  slug        String     @unique
+  title       String
+  summary     String     @db.Text
+  body        String     @db.Text
+  status      PostStatus @default(draft)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String
+  metadata   String?    @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}

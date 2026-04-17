@@ -1,0 +1,132 @@
+.admin-wrap {
+	max-width: 52rem;
+	margin: 0 auto;
+	padding: 1.5rem 1rem 3rem;
+}
+.admin-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid rgba(var(--gray), 0.35);
+}
+.admin-bar a {
+	text-decoration: none;
+}
+.admin-bar a:hover {
+	text-decoration: underline;
+}
+.admin-title {
+	margin: 0;
+	font-size: 1.75rem;
+}
+.admin-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 1.25rem 1.5rem;
+	box-shadow: var(--box-shadow);
+	margin-bottom: 1rem;
+}
+.admin-form label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 0.35rem;
+	font-size: 0.95rem;
+}
+.admin-form input[type='text'],
+.admin-form input[type='email'],
+.admin-form input[type='password'],
+.admin-form textarea,
+.admin-form select {
+	box-sizing: border-box;
+	font: inherit;
+	padding: 0.5rem 0.65rem;
+	border: 1px solid rgba(var(--gray), 0.45);
+	border-radius: 8px;
+	margin-bottom: 1rem;
+}
+.admin-form textarea {
+	min-height: 280px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+.admin-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	align-items: center;
+	margin-top: 0.5rem;
+}
+.admin-btn {
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	border: none;
+	font: inherit;
+	cursor: pointer;
+	background: rgb(var(--black));
+	color: #fff;
+	text-decoration: none;
+}
+.admin-btn:hover {
+	opacity: 0.9;
+}
+.admin-btn.secondary {
+	background: #fff;
+	color: rgb(var(--black));
+	border: 1px solid rgba(var(--gray), 0.5);
+}
+.admin-btn.danger {
+	background: #b91c1c;
+}
+.admin-msg {
+	padding: 0.75rem 1rem;
+	border-radius: 8px;
+	margin-bottom: 1rem;
+}
+.admin-msg.error {
+	background: #fef2f2;
+	color: #991b1b;
+}
+.admin-msg.ok {
+	background: #ecfdf5;
+	color: #065f46;
+}
+.admin-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.95rem;
+}
+.admin-table th,
+.admin-table td {
+	text-align: left;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid rgba(var(--gray), 0.25);
+}
+.admin-table th {
+	color: rgb(var(--gray-dark));
+	font-weight: 600;
+}
+.badge {
+	display: inline-block;
+	padding: 0.15rem 0.45rem;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	font-weight: 600;
+}
+.badge.draft {
+	background: #fef3c7;
+	color: #92400e;
+}
+.badge.published {
+	background: #d1fae5;
+	color: #065f46;
+}
+.badge.archived {
+	background: #f3f4f6;
+	color: #4b5563;
+}
