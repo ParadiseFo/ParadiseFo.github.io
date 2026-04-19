@@ -5,6 +5,8 @@
 
 **仅在浏览器里完成的步骤**（Secrets、Pages 源、工作流权限）：见 **`docs/DEPLOY-USER-ONLY.md`** 第 D、F 节。
 
+**希望「网站博文 = 管理员后台文章」（同一套 API / 数据库）**：按 **`docs/MODE-B-API.md`** 配置 **`PUBLIC_API_BASE`**（GitHub Secret + 本地 `.env`）。
+
 ---
 
 ## 一、前提条件
@@ -24,15 +26,16 @@
 2. **Build and deployment → Source** 选 **GitHub Actions**（不要选 “Deploy from a branch” 除非你不用本工作流）。  
 3. **Settings** → **Actions** → **General** → **Workflow permissions**：勾选 **Read and write**，并允许 GitHub Token 调用 Pages（按页面提示保存）。
 
-### 2. 配置密钥（构建时拉文章列表）
+### 2. 配置密钥 `PUBLIC_API_BASE`（模式 B：与管理员同源时 **必填**）
 
 1. **Settings** → **Secrets and variables** → **Actions** → **New repository secret**。  
 2. Name：`PUBLIC_API_BASE`  
-3. Value：你的 API 根地址，**无尾部斜杠**，例如：  
-   `https://your-api.example.com`  
+3. Value：已部署 API 的 **HTTPS 根地址**，**无尾部斜杠**，例如：  
+   `https://your-service.up.railway.app`  
 4. 保存。
 
-> CI 里的 `npm run build` 会用该地址请求文章；若未配置或 API 不可达，构建出的博文列表/单篇可能为空。
+> **未配置**该 Secret（且本地构建也未导出变量）时，构建会使用仓库内 **`src/content/blog`** 的 Markdown，**与管理员数据库无关**。  
+> **已配置**时，CI 的 `npm run build` 会向该地址请求文章；若 API 不可达或超时，博文可能为空或构建失败。详见 **`docs/MODE-B-API.md`**。
 
 ### 3. 把代码推到该仓库
 
@@ -70,7 +73,8 @@ npx serve dist
 
 浏览器打开本地 `serve` 给出的地址，检查首页、博文列表、单篇。
 
-> **若未设置 `PUBLIC_API_BASE` 或 API 未启动**，构建会成功，但 **`/blog/某slug/` 不会生成**（列表可能显示错误提示）。以 CI 中配置了 Secret 且 API 可公网访问为准。
+> **模式 B**（已配置 `PUBLIC_API_BASE`）：若 API 未启动或不可达，构建可能失败或文章为空。  
+> **未配置** `PUBLIC_API_BASE`：使用 `src/content/blog` 生成 `/blog`，不依赖 API。
 
 ---
 
