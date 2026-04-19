@@ -2,11 +2,12 @@
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# Prisma 在 postinstall 时需要 schema；须先于 npm ci 复制 prisma/
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
+COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
