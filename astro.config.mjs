@@ -6,9 +6,10 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 
 // https://astro.build/config
-// 静态构建：部署到 GitHub Pages；构建时通过 PUBLIC_API_BASE 拉取文章
+// 静态构建：部署到 GitHub Pages 或 Railway；构建时通过 PUBLIC_API_BASE 拉取文章
+// 全栈在 Railway 时设置 PUBLIC_SITE_URL = 前端 HTTPS 根地址（无尾斜杠）
 export default defineConfig({
-	site: 'https://paradisefo.github.io',
+	site: process.env.PUBLIC_SITE_URL || 'https://paradisefo.github.io',
 	output: 'static',
 
 	markdown: {

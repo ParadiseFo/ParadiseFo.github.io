@@ -1,0 +1,11 @@
+# 根目录 Dockerfile.frontend 构建上下文（不包含 backend，加快上传）
+backend
+.git
+.github
+dist
+.astro
+node_modules
+**/.env
+**/.env.*
+docker
+docker-compose.yml

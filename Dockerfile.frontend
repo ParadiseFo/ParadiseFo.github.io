@@ -1,0 +1,25 @@
+# Astro 静态博客前端 → 在 Railway 中作为独立 Web Service 部署（与 backend/、MySQL 并列）
+# 构建参数由该服务的 Variables 提供（Railway 会传入同名 ARG），见 docs/RAILWAY-FULL-STACK.md
+
+FROM node:22-bookworm-slim AS builder
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+ARG PUBLIC_API_BASE
+ENV PUBLIC_API_BASE=${PUBLIC_API_BASE}
+ARG PUBLIC_SITE_URL
+ENV PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
+
+RUN npm run build
+
+FROM node:22-bookworm-slim
+WORKDIR /app
+RUN npm install -g serve@14.2.4
+COPY --from=builder /app/dist ./dist
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["sh", "-c", "serve dist -s -l tcp://0.0.0.0:${PORT:-3000}"]

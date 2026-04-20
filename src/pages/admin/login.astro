@@ -19,9 +19,8 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 			</div>
 		</form>
 	</div>
-</AdminLayout>
 
-<script>
+	<script>
 	import { apiJson, setToken, getToken, clearToken } from '../../scripts/admin-client.ts';
 
 	if (getToken()) {
@@ -55,4 +54,5 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 			msg.style.display = 'block';
 		}
 	});
-</script>
+	</script>
+</AdminLayout>

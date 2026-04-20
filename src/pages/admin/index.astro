@@ -30,9 +30,8 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 			</table>
 		</div>
 	</div>
-</AdminLayout>
 
-<script>
+	<script>
 	import {
 		apiJson,
 		clearToken,
@@ -77,7 +76,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 				.map(
 					(p) => `
 				<tr>
-					<td><a href="/admin/posts/${p.id}/edit">${escapeHtml(p.title)}</a></td>
+					<td><a href="/admin/posts/edit?id=${encodeURIComponent(p.id)}">${escapeHtml(p.title)}</a></td>
 					<td><code>${escapeHtml(p.slug)}</code></td>
 					<td><span class="${badgeClass(p.status)}">${escapeHtml(p.status)}</span></td>
 					<td>${escapeHtml(new Date(p.updatedAt).toLocaleString('zh-CN'))}</td>
@@ -103,4 +102,5 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 	}
 
 	load();
-</script>
+	</script>
+</AdminLayout>

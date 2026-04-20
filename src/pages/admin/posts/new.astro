@@ -27,9 +27,8 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
 			</div>
 		</form>
 	</div>
-</AdminLayout>
 
-<script>
+	<script>
 	import { apiJson, getToken, redirectToLogin } from '../../../scripts/admin-client.ts';
 
 	const form = document.getElementById('form') as HTMLFormElement;
@@ -60,10 +59,11 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
 				method: 'POST',
 				body: JSON.stringify(payload),
 			});
-			window.location.href = `/admin/posts/${res.data.id}/edit`;
+			window.location.href = `/admin/posts/edit?id=${encodeURIComponent(res.data.id)}`;
 		} catch (err) {
 			msg.textContent = err instanceof Error ? err.message : '创建失败';
 			msg.style.display = 'block';
 		}
 	});
-</script>
+	</script>
+</AdminLayout>

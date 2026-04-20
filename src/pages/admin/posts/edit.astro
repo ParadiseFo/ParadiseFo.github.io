@@ -1,19 +1,10 @@
 ---
+/**
+ * 单一编辑页：GitHub Pages 等静态托管下无需为每个 id 预生成 HTML。
+ * 访问 /admin/posts/edit?id=<postId>，客户端用 JWT 拉取草稿或已发布文章。
+ */
 export const prerender = true;
-import AdminLayout from '../../../../components/admin/AdminLayout.astro';
-import { fetchPostList } from '../../../../lib/api';
-
-/** 静态托管：仅为「当前已上线」文章生成编辑页（与公开列表一致）；草稿仅在本机 dev 可编 */
-export async function getStaticPaths() {
-	try {
-		const { data } = await fetchPostList(1, 500);
-		return data.map((p) => ({ params: { id: p.id } }));
-	} catch {
-		return [];
-	}
-}
-
-const { id } = Astro.params;
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
 ---
 
 <AdminLayout title="编辑文章">
@@ -27,7 +18,7 @@ const { id } = Astro.params;
 		<div id="msg" class="admin-msg error" style="display:none"></div>
 		<div id="ok" class="admin-msg ok" style="display:none"></div>
 		<form id="form" class="admin-form admin-card" style="display:none">
-			<input type="hidden" id="postId" value={id} />
+			<input type="hidden" id="postId" value="" />
 			<label for="title">标题</label>
 			<input id="title" name="title" type="text" required maxlength="300" />
 			<label for="slug">Slug</label>
@@ -45,16 +36,17 @@ const { id } = Astro.params;
 		</form>
 		<p id="loading">加载中…</p>
 	</div>
-</AdminLayout>
 
-<script define:vars={{ postId: id }}>
-	import { apiJson, getToken, redirectToLogin } from '../../../../scripts/admin-client.ts';
+	<script>
+	import { apiJson, getToken, redirectToLogin } from '../../../scripts/admin-client.ts';
 
 	const msg = document.getElementById('msg') as HTMLDivElement;
 	const ok = document.getElementById('ok') as HTMLDivElement;
 	const form = document.getElementById('form') as HTMLFormElement;
 	const loading = document.getElementById('loading') as HTMLParagraphElement;
 	const meta = document.getElementById('meta') as HTMLParagraphElement;
+
+	const postId = new URLSearchParams(window.location.search).get('id');
 
 	if (!getToken()) {
 		redirectToLogin();
@@ -63,6 +55,8 @@ const { id } = Astro.params;
 	if (!postId) {
 		window.location.href = '/admin';
 	}
+
+	(document.getElementById('postId') as HTMLInputElement).value = postId;
 
 	type Post = {
 		id: string;
@@ -150,4 +144,5 @@ const { id } = Astro.params;
 	});
 
 	load();
-</script>
+	</script>
+</AdminLayout>

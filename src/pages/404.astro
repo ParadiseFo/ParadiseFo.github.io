@@ -1,0 +1,32 @@
+---
+/**
+ * 生成 dist/404.html；GitHub Pages 对不存在的路径会返回该页。
+ * 旧书签 /admin/posts/<id>/edit 无静态文件 → 在此用脚本跳转到 ?id= 编辑页。
+ */
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>页面未找到</title>
+		<script is:inline>
+			(function () {
+				var m = location.pathname.match(/^\/admin\/posts\/([^/]+)\/edit\/?$/);
+				if (m) {
+					location.replace('/admin/posts/edit?id=' + encodeURIComponent(m[1]));
+				}
+			})();
+		</script>
+	</head>
+	<body style="font-family: system-ui, sans-serif; padding: 2rem; max-width: 40rem">
+		<h1>404 — 页面未找到</h1>
+		<p>请求的地址没有对应文件。</p>
+		<p>
+			若从旧版「编辑」书签进入，请改用：<code>/admin/posts/edit?id=文章id</code>，或从 <a href="/admin">管理后台列表</a> 点击标题。
+		</p>
+		<p><a href="/">返回首页</a></p>
+	</body>
+</html>
