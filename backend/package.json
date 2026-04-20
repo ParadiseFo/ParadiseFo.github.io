@@ -7,11 +7,13 @@
     "dev": "dotenvx run -- tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "db:migrate:deploy": "prisma migrate deploy",
     "start:local": "dotenvx run -- node dist/server.js",
     "db:generate": "dotenvx run -- prisma generate",
     "db:migrate": "dotenvx run -- prisma migrate dev",
     "db:push": "dotenvx run -- prisma db push",
     "db:seed": "dotenvx run -- tsx prisma/seed.ts",
+    "db:seed:prod": "tsx prisma/seed.ts",
     "db:export-sqlite-csv": "tsx scripts/sqlite-export-csv.ts",
     "db:import-mysql-csv": "dotenvx run -- tsx scripts/mysql-import-csv.ts",
     "postinstall": "prisma generate"
