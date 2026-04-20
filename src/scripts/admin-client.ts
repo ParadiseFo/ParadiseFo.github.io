@@ -3,9 +3,20 @@
 export const TOKEN_KEY = 'tech_blog_admin_token';
 
 export function getApiBase(): string {
-	return (
+	let base = (
 		document.documentElement.dataset.publicApiBase?.trim() || 'http://localhost:4000'
 	).replace(/\/$/, '');
+	// GitHub Pages 等为 HTTPS 时，用 http:// 调 API 会被浏览器拦截（Mixed Content）
+	if (
+		typeof window !== 'undefined' &&
+		window.location.protocol === 'https:' &&
+		base.startsWith('http://') &&
+		!base.startsWith('http://localhost') &&
+		!base.startsWith('http://127.0.0.1')
+	) {
+		base = 'https://' + base.slice('http://'.length);
+	}
+	return base;
 }
 
 export function getToken(): string | null {

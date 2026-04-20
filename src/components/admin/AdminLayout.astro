@@ -7,8 +7,19 @@ interface Props {
 }
 
 const { title } = Astro.props;
-/* 与浏览器地址栏一致时用 localhost，避免与 127.0.0.1 混用带来的跨域/困惑 */
-const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:4000';
+/* 线上站点为 HTTPS 时，PUBLIC_API_BASE 若误写为 http:// 会导致 Mixed Content；构建时把公网 API 规范为 https */
+const rawBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:4000';
+const apiBase = (() => {
+	const s = String(rawBase).trim();
+	if (
+		s.startsWith('http://') &&
+		!s.includes('localhost') &&
+		!s.includes('127.0.0.1')
+	) {
+		return 'https://' + s.slice('http://'.length);
+	}
+	return s;
+})();
 ---
 
 <!doctype html>
