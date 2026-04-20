@@ -101,6 +101,25 @@ Prisma 只认 **`DATABASE_URL`**，不会自动读 `MYSQL_URL`。需要在 **API
 
 配置好 `DATABASE_URL` 并 **Redeploy** 后，日志里应先有迁移成功，再有 `Listening on ...`。**`backend/railway.json`** 里 **`healthcheckTimeout`** 已加长，避免迁移较慢时健康检查过早失败。
 
+### 故障：P1001 `Can't reach database server at mysql.railway.internal:3306`
+
+说明 **API 容器连不上** Railway 私网里的 MySQL。请逐项核对：
+
+1. **同一 Project、同一 Environment（如 production）**  
+   画布上 **MySQL** 与 **tech-blog-api** 必须在**同一个项目**里；不要把 API 单独建到空项目。
+
+2. **MySQL 已 Running**  
+   点进 MySQL 服务，确认不是 Crashed / 未部署完成。
+
+3. **`DATABASE_URL` 必须用官方连接串**  
+   在 **API 服务 → Variables** 里用 **`${{ MySQL.MYSQL_URL }}`**（服务名与画布一致），或打开 **MySQL → Variables**，把 **`MYSQL_URL`** 整段复制到 API 的 **`DATABASE_URL`**。不要手写 `mysql.railway.internal` 以免错库名/密码。
+
+4. **仍失败时**  
+   在 **MySQL → Connect**（或 **Data**）里查看是否有 **TCP Proxy / Public** 连接串；若私网始终不通，可临时用平台提供的 **公网主机:端口** 写进 `DATABASE_URL`（注意安全与计费说明），确认能连后再回头排查私网。
+
+5. **镜像内重试**  
+   **`backend/scripts/railway-entrypoint.sh`** 会在迁移失败时每 3 秒重试（默认最多约 2 分钟），缓解 MySQL 比 API 晚就绪的情况。
+
 ---
 
 ## 七、公网域名（给 GitHub Pages 的 `PUBLIC_API_BASE`）
