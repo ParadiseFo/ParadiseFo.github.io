@@ -3,6 +3,17 @@
 适用于：**博客与 `backend/` 同仓**，在 **Railway** 上同时跑 **MySQL** 与 **Fastify API**。  
 Prisma 使用环境变量 **`DATABASE_URL`**；Railway 的 MySQL 服务会提供 **`MYSQL_URL`** 等变量（见 [官方文档](https://docs.railway.com/databases/mysql)）。
 
+### 故障：日志里 `P1012` / `Environment variable not found: DATABASE_URL`
+
+**原因**：**部署 API 的那个服务**（例如 `tech-blog-api`）的 **Variables** 里**没有** `DATABASE_URL`。容器启动时会执行 `prisma migrate deploy`，Prisma **必须**能读到该变量。
+
+**处理**（二选一）：
+
+1. **推荐**：在 **API 服务** → **Variables** → 新增 **`DATABASE_URL`**，值为 **`${{ 你的MySQL服务名.MYSQL_URL }}`**（用输入框里的变量引用自动补全，见下文第五节）。  
+2. 或从 **MySQL 服务** 复制 **`MYSQL_URL`** 的整段字符串，粘贴到 API 服务的 **`DATABASE_URL`**。
+
+改完后点 **Redeploy**，不要只在 MySQL 服务上有连接串而忘记 API 服务。
+
 ---
 
 ## 一、准备工作
@@ -86,8 +97,9 @@ Prisma 只认 **`DATABASE_URL`**，不会自动读 `MYSQL_URL`。需要在 **API
 
 ## 六、迁移与启动
 
-本仓库 Docker 启动命令已包含 **`npx prisma migrate deploy`**。  
-配置好 `DATABASE_URL` 并 **Redeploy** 后，日志里应出现迁移成功；若失败，打开 API 服务的 **Logs** 查看 Prisma 报错。
+**`prisma migrate deploy`** 放在镜像 **`CMD`** 里、与 **`node dist/server.js` 同一容器**执行（见 **`backend/Dockerfile`**）。请勿把迁移放到 Railway **Pre-deploy**：Pre-deploy 在**另一环境**里跑，往往**访问不到** `mysql.railway.internal`，会出现 **P1001 Can't reach database server**。
+
+配置好 `DATABASE_URL` 并 **Redeploy** 后，日志里应先有迁移成功，再有 `Listening on ...`。**`backend/railway.json`** 里 **`healthcheckTimeout`** 已加长，避免迁移较慢时健康检查过早失败。
 
 ---
 
